@@ -1,0 +1,312 @@
+commit b367613c3bb88549dbb9944d306fe561dea03f04
+Author: Frank Ch. Eigler <fche@redhat.com>
+Date:   Fri Sep 24 15:54:34 2021 -0400
+
+    PR28384: convert more nfs_proc.stp server_ip to string
+    
+    This tapset variable has been changed in stap version 4.3
+    to a string.  Finish covering all instances in various
+    probe aliases.
+
+diff --git a/tapset/linux/nfs_proc.stp b/tapset/linux/nfs_proc.stp
+index 257907457..9b1f65f5f 100644
+--- a/tapset/linux/nfs_proc.stp
++++ b/tapset/linux/nfs_proc.stp
+@@ -235,7 +235,11 @@ probe _nfs.proc2.lookup = kernel.function("nfs_proc_lookup") !,
+ probe _nfs.proc2.missing_lookup = never
+ {
+ 	client = 0
++%( systemtap_v >= "4.3" %?
++	server_ip = ""
++%:
+ 	server_ip = 0
++%)
+ 	prot = 0
+ 
+ 	name_len = 0
+@@ -361,7 +365,11 @@ probe _nfs.proc2.read = kernel.function("nfs_proc_read") !,
+ }
+ probe _nfs.proc2.missing_read = never
+ {
++%( systemtap_v >= "4.3" %?
++	server_ip = ""
++%:
+ 	server_ip = 0
++%)
+ 	prot = 0
+ 
+ 	flags = 0
+@@ -496,7 +504,11 @@ probe _nfs.proc2.write = kernel.function("nfs_proc_write") !,
+ }
+ probe _nfs.proc2.missing_write = never
+ {
++%( systemtap_v >= "4.3" %?
++	server_ip = ""
++%:
+ 	server_ip = 0
++%)
+ 	prot = 0
+ 
+ 	flags = 0
+@@ -759,7 +771,7 @@ probe _nfs.proc2.missing_read_setup = never
+ 	inode = 0
+ 	client = 0
+ %( systemtap_v >= "4.3" %?
+-	server_ip = "0"
++	server_ip = ""
+ %:
+ 	server_ip = 0
+ %)
+@@ -895,7 +907,11 @@ probe _nfs.proc2.read_done = kernel.function("nfs_read_done") !,
+ }
+ probe _nfs.proc2.missing_read_done = never
+ {
++%( systemtap_v >= "4.3" %?
++	server_ip = ""
++%:
+ 	server_ip = 0
++%)
+ 	prot = 0
+ 	count = 0
+ 	status = 0
+@@ -1054,7 +1070,11 @@ probe _nfs.proc2.missing_write_setup = never
+ {
+ 	inode = 0
+ 	client = 0
++%( systemtap_v >= "4.3" %?
++	server_ip = ""
++%:
+ 	server_ip = 0
++%)
+ 	prot = 0
+ 
+ 	count = 0
+@@ -1201,7 +1221,11 @@ probe _nfs.proc2.write_done = kernel.function("nfs_write_done") !,
+ }
+ probe _nfs.proc2.missing_write_done = never
+ {
++%( systemtap_v >= "4.3" %?
++	server_ip = ""
++%:
+ 	server_ip = 0
++%)
+ 	prot = 0
+ 	count = 0
+ 	valid = 0
+@@ -1826,7 +1850,11 @@ probe _nfs.proc2.create = kernel.function("nfs_proc_create") !,
+ probe _nfs.proc2.missing_create = never
+ {
+ 	client = 0
++%( systemtap_v >= "4.3" %?
++	server_ip = ""
++%:
+ 	server_ip = 0
++%)
+ 	prot = 0
+ 
+ 	fh = 0
+@@ -1946,7 +1974,11 @@ probe _nfs.proc2.remove = kernel.function("nfs_proc_remove") !,
+ probe _nfs.proc2.missing_remove = never
+ {
+ 	client = 0
++%( systemtap_v >= "4.3" %?
++	server_ip = ""
++%:
+ 	server_ip = 0
++%)
+ 	prot = 0
+ 
+ 	fh = 0
+@@ -2067,7 +2099,11 @@ probe _nfs.proc2.rename = kernel.function("nfs_proc_rename") !,
+ probe _nfs.proc2.missing_rename = never
+ {
+ 	client = 0
++%( systemtap_v >= "4.3" %?
++	server_ip = ""
++%:
+ 	server_ip = 0
++%)
+ 	prot = 0
+ 
+ 	old_fh = 0
+@@ -2114,7 +2150,11 @@ probe _nfs.proc3.rename = kernel.function("nfs3_proc_rename") !,
+ probe _nfs.proc3.missing_rename = never
+ {
+ 	client = 0
++%( systemtap_v >= "4.3" %?
++	server_ip = ""
++%:
+ 	server_ip = 0
++%)
+ 	prot = 0
+ 
+ 	old_fh = 0
+@@ -2161,7 +2201,11 @@ probe _nfs.proc4.rename = kernel.function("nfs4_proc_rename") !,
+ probe _nfs.proc4.missing_rename = never
+ {
+ 	client = 0
++%( systemtap_v >= "4.3" %?
++	server_ip = ""
++%:
+ 	server_ip = 0
++%)
+ 	prot = 0
+ 
+ 	old_fh = 0
+diff --git a/testsuite/buildok/nfs_proc-detailed.stp b/testsuite/buildok/nfs_proc-detailed.stp
+index 2a04ee2a7..e7c7f2d18 100755
+--- a/testsuite/buildok/nfs_proc-detailed.stp
++++ b/testsuite/buildok/nfs_proc-detailed.stp
+@@ -3,7 +3,7 @@
+ 
+ probe nfs.proc.lookup {
+ 	printf("%s(%s)\n", name, argstr)
+-	printf("%d %d %d %d\n", server_ip, prot, version, name_len)
++	printf("%s %d %d %d\n", server_ip, prot, version, name_len)
+ 	printf("%d %d\n", bitmask0, bitmask1)
+ }
+ probe nfs.proc.lookup.return {
+@@ -12,7 +12,7 @@ probe nfs.proc.lookup.return {
+ 
+ probe nfs.proc.read ? {
+ 	printf("%s(%s)\n", name, argstr)
+-	printf("%d %d %d %d %d %s\n", server_ip, prot, version, flags,
++	printf("%s %d %d %d %d %s\n", server_ip, prot, version, flags,
+ 		size, units)
+ }
+ probe nfs.proc.read.return ? {
+@@ -21,7 +21,7 @@ probe nfs.proc.read.return ? {
+ 
+ probe nfs.proc.write ? {
+ 	printf("%s(%s)\n", name, argstr)
+-	printf("%d %d %d %d %d %s\n", server_ip, prot, version, flags,
++	printf("%s %d %d %d %d %s\n", server_ip, prot, version, flags,
+ 		size, units)
+ 	printf("%d %d\n", bitmask0, bitmask1)
+ }
+@@ -32,7 +32,7 @@ probe nfs.proc.write.return ? {
+ 
+ probe nfs.proc.commit ? {
+ 	printf("%s(%s)\n", name, argstr)
+-	printf("%d %d %d %d %s\n", server_ip, prot, version, size, units)
++	printf("%s %d %d %d %s\n", server_ip, prot, version, size, units)
+ 	printf("%d %d\n", bitmask0, bitmask1)
+ }
+ probe nfs.proc.commit.return ? {
+@@ -43,7 +43,7 @@ probe nfs.proc.commit.return ? {
+ 
+ probe nfs.proc.read_setup {
+ 	printf("%s(%s)\n", name, argstr)
+-	printf("%d %d %d %d %d %s\n", client, server_ip, prot,
++	printf("%d %s %d %d %d %s\n", client, server_ip, prot,
+ 		version, size, units)
+ }
+ probe nfs.proc.read_setup.return {
+@@ -52,7 +52,7 @@ probe nfs.proc.read_setup.return {
+ 
+ probe nfs.proc.read_done {
+ 	printf("%s(%s)\n", name, argstr)
+-	printf("%d %d %d %d\n", server_ip, prot, count, version)
++	printf("%s %d %d %d\n", server_ip, prot, count, version)
+ 	printf("%d\n", timestamp)
+ }
+ probe nfs.proc.read_done.return {
+@@ -61,7 +61,7 @@ probe nfs.proc.read_done.return {
+ 
+ probe nfs.proc.write_setup {
+ 	printf("%s(%s)\n", name, argstr)
+-	printf("%d %d %d %d %d %s\n", client, server_ip, prot,
++	printf("%d %s %d %d %d %s\n", client, server_ip, prot,
+ 		version, size, units)
+ 	printf("%d %d %d\n", how, bitmask0, bitmask1)
+ }
+@@ -71,7 +71,7 @@ probe nfs.proc.write_setup.return {
+ 
+ probe nfs.proc.write_done {
+ 	printf("%s(%s)\n", name, argstr)
+-	printf("%d %d %d %d %d\n", server_ip, prot, count, valid, version)
++	printf("%s %d %d %d %d\n", server_ip, prot, count, valid, version)
+ 	printf("%d\n", timestamp)
+ }
+ probe nfs.proc.write_done.return {
+@@ -80,7 +80,7 @@ probe nfs.proc.write_done.return {
+ 
+ probe nfs.proc.commit_setup {
+ 	printf("%s(%s)\n", name, argstr)
+-	printf("%d %d %d %d %d %s\n", client, server_ip, prot,
++	printf("%d %s %d %d %d %s\n", client, server_ip, prot,
+ 		version, size, units)
+ 	printf("%d %d\n", bitmask0, bitmask1)
+ }
+@@ -90,7 +90,7 @@ probe nfs.proc.commit_setup.return {
+ 
+ probe nfs.proc.commit_done {
+ 	printf("%s(%s)\n", name, argstr)
+-	printf("%d %d %d %d %d\n", server_ip, prot, count, valid, version)
++	printf("%s %d %d %d %d\n", server_ip, prot, count, valid, version)
+ 	printf("%d\n", timestamp)
+ }
+ probe nfs.proc.commit_done.return {
+@@ -99,7 +99,7 @@ probe nfs.proc.commit_done.return {
+ 
+ probe nfs.proc.rename_setup {
+ 	printf("%s(%s)\n", name, argstr)
+-	printf("%d %d %d %d\n", client, server_ip, prot,
++	printf("%d %s %d %d\n", client, server_ip, prot,
+ 		version)
+ 	printf("%d\n", fh)
+ }
+@@ -109,7 +109,7 @@ probe nfs.proc.rename_setup.return {
+ 
+ probe nfs.proc.rename_done {
+ 	printf("%s(%s)\n", name, argstr)
+-	printf("%d %d %d\n", server_ip, prot, version)
++	printf("%s %d %d\n", server_ip, prot, version)
+ 	printf("%d %d\n", timestamp, status)
+ 	printf("%d %d\n", old_fh, new_fh)
+ }
+@@ -119,7 +119,7 @@ probe nfs.proc.rename_done.return {
+ 
+ probe nfs.proc.open {
+ 	printf("%s(%s)\n", name, argstr)
+-	printf("%d %d %d\n", server_ip, prot, version)
++	printf("%s %d %d\n", server_ip, prot, version)
+ }
+ probe nfs.proc.open.return {
+ 	printf("%s(%s)\n", name, retstr)
+@@ -127,7 +127,7 @@ probe nfs.proc.open.return {
+ 
+ probe nfs.proc.release ? {
+ 	printf("%s(%s)\n", name, argstr)
+-	printf("%d %d %d\n", server_ip, prot, version)
++	printf("%s %d %d\n", server_ip, prot, version)
+ }
+ probe nfs.proc.release.return ? {
+ 	printf("%s(%s)\n", name, retstr)
+@@ -143,7 +143,7 @@ probe nfs.proc.handle_exception.return {
+ 
+ probe nfs.proc.create {
+ 	printf("%s(%s)\n", name, argstr)
+-	printf("%d %d %d %d %d %d\n", server_ip, prot, version, fh,
++	printf("%s %d %d %d %d %d\n", server_ip, prot, version, fh,
+ 		filelen, mode)
+ }
+ probe nfs.proc.create.return {
+@@ -152,7 +152,7 @@ probe nfs.proc.create.return {
+ 
+ probe nfs.proc.remove {
+ 	printf("%s(%s)\n", name, argstr)
+-	printf("%d %d %d %d %d\n", server_ip, prot, version, fh,
++	printf("%s %d %d %d %d\n", server_ip, prot, version, fh,
+ 		filelen)
+ }
+ probe nfs.proc.remove.return {
+@@ -161,7 +161,7 @@ probe nfs.proc.remove.return {
+ 
+ probe nfs.proc.rename {
+ 	printf("%s(%s)\n", name, argstr)
+-	printf("%d %d %d\n", server_ip, prot, version)
++	printf("%s %d %d\n", server_ip, prot, version)
+ 	printf("%d %d %s\n", old_fh, old_filelen, old_name)
+ 	printf("%d %d %s\n", new_fh, new_filelen, new_name)
+ }
